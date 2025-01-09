@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Monitoring Absen</title>
+    <style>
+        /* Reset dan styling dasar */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background: #4CAF50;
+            color: #fff;
+            text-align: center;
+            padding: 2rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-bottom: 5px solid #388E3C;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 450px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        label {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+            text-align: left;
+        }
+
+        input, select, button {
+            padding: 0.8rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            outline: none;
+            transition: 0.3s ease-in-out;
+        }
+
+        input:focus, select:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            padding: 0.9rem;
+            border: none;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button.secondary {
+            background-color: #007bff;
+        }
+
+        button.secondary:hover {
+            background-color: #0056b3;
+        }
+
+        .note {
+            margin-top: 1.5rem;
+            font-size: 1rem;
+            color: #777;
+        }
+
+        .note button {
+            background: none;
+            color: #4CAF50;
+            font-weight: 600;
+            text-decoration: underline;
+            border: none;
+            cursor: pointer;
+        }
+
+        .note button:hover {
+            color: #388E3C;
+        }
+
+        .table-container {
+            margin-top: 2rem;
+            max-width: 800px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        table th, table td {
+            padding: 0.9rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .actions button {
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            background-color: #f39c12;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .actions button:hover {
+            background-color: #e67e22;
+        }
+
+        .actions .delete {
+            background-color: #e74c3c;
+        }
+
+        .actions .delete:hover {
+            background-color: #c0392b;
+        }
+
+        .actions .validate {
+            background-color: #2ecc71;
+        }
+
+        .actions .validate:hover {
+            background-color: #27ae60;
+        }
+
+        .actions button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Aplikasi Absen</h1>
+    </header>
+
+    <div id="login-page" class="container">
+        <h2>Login</h2>
+        <form id="login-form">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Masukkan username" required>
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Masukkan password" required>
+            <button type="submit">Login</button>
+            <button onclick="navigateToLogin()">Kembali</button>
+        </form>
+        <p class="note">
+            Belum punya akun? 
+            <button onclick="switchPage('register-page')" class="secondary">Daftar</button>
+        </p>
+    </div>
+
+    <div id="register-page" class="container" style="display: none;">
+        <h2>Daftar Akun Baru</h2>
+        <form id="register-form">
+            <label for="reg-username">Username</label>
+            <input type="text" id="reg-username" placeholder="Pilih username" required>
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" placeholder="Pilih password" required>
+            <button type="submit">Daftar</button>
+        </form>
+        <button onclick="switchPage('login-page')" class="secondary">Kembali ke Login</button>
+    </div>
+
+    <!-- Admin Page (hidden by default) -->
+    <div id="admin-page" class="container" style="display: none;">
+        <h2>Daftar Absen</h2>
+        <div class="table-container">
+            <table id="admin-absen-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>NIS</th>
+                        <th>Nama</th>
+                        <th>Kelas</th>
+                        <th>Status</th>
+                        <th>Validasi</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <button onclick="logout()" class="secondary">Logout</button>
+    </div>
+
+    <!-- User Page (hidden by default) -->
+    <div id="user-page" class="container" style="display: none;">
+        <h2>Input Data Absen</h2>
+        <form id="absen-form">
+            <label for="nis">NIS</label>
+            <input type="text" id="nis" placeholder="Masukkan NIS" required>
+            <label for="kelas">Kelas</label>
+            <input type="text" id="kelas" placeholder="Masukkan kelas" required>
+            <label for="status">Status</label>
+            <select id="status">
+                <option value="Hadir">Hadir</option>
+                <option value="Sakit">Sakit</option>
+                <option value="Izin">Izin</option>
+                <option value="Alfa">Alfa</option>
+            </select>
+            <button type="submit">Simpan</button>
+        </form>
+
+        <h2>Hasil Absen Saya</h2>
+        <div class="table-container">
+            <table id="user-absen-table">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>NIS</th>
+                        <th>Kelas</th>
+                        <th>Status</th>
+                        <th>Validasi</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <button onclick="logout()" class="secondary">Logout</button>
+    </div>
+
+    <script>
+        let users = JSON.parse(localStorage.getItem('users')) || [
+            { username: 'admin', password: 'admin', role: 'admin' },
+            { username: 'user', password: 'user', role: 'user' }
+        ];
+        let absensi = JSON.parse(localStorage.getItem('absensi')) || [];
+        let currentUser = null;
+
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                currentUser = user;
+                switchPage(user.role === 'admin' ? 'admin-page' : 'user-page');
+                if (user.role === 'admin') loadAdminTable();
+                else loadUserTable();
+            } else {
+                alert('Username atau password salah!');
+            }
+        });
+
+        document.getElementById('register-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('reg-username').value;
+            const password = document.getElementById('reg-password').value;
+
+            if (users.find(u => u.username === username)) {
+                alert('Username sudah terdaftar!');
+                return;
+            }
+
+            users.push({ username, password, role: 'user' });
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('Akun berhasil dibuat!');
+            switchPage('login-page');
+        });
+
+        document.getElementById('absen-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const nis = document.getElementById('nis').value;
+            const kelas = document.getElementById('kelas').value;
+            const status = document.getElementById('status').value;
+
+            const newAbsen = {
+                id: Date.now(),
+                nis,
+                nama: currentUser.username,
+                kelas,
+                status,
+                validasi: 'Belum'
+            };
+
+            absensi.push(newAbsen);
+            localStorage.setItem('absensi', JSON.stringify(absensi));
+            loadUserTable();
+        });
+
+        function loadAdminTable() {
+            const tableBody = document.querySelector('#admin-absen-table tbody');
+            tableBody.innerHTML = '';
+            absensi.forEach((data, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${data.nis}</td>
+                    <td>${data.nama}</td>
+                    <td>${data.kelas}</td>
+                    <td>${data.status}</td>
+                    <td>${data.validasi}</td>
+                    <td class="actions">
+                        <button onclick="validateAbsen(${data.id}, 'Valid')" class="validate">Validasi</button>
+                        <button onclick="validateAbsen(${data.id}, 'Ditolak')" class="delete">Tolak</button>
+                        <button onclick="deleteAbsen(${data.id})" class="delete">Hapus</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function loadUserTable() {
+            const tableBody = document.querySelector('#user-absen-table tbody');
+            tableBody.innerHTML = '';
+            absensi
+                .filter(data => data.nama === currentUser.username)
+                .forEach((data, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${data.nis}</td>
+                        <td>${data.kelas}</td>
+                        <td>${data.status}</td>
+                        <td>${data.validasi}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+        }
+
+        function validateAbsen(id, status) {
+            const absen = absensi.find(data => data.id === id);
+            if (absen) absen.validasi = status;
+            localStorage.setItem('absensi', JSON.stringify(absensi));
+            loadAdminTable();
+        }
+
+        function deleteAbsen(id) {
+            absensi = absensi.filter(data => data.id !== id);
+            localStorage.setItem('absensi', JSON.stringify(absensi));
+            loadAdminTable();
+        }
+
+        function logout() {
+            currentUser = null;
+            switchPage('login-page');
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.container').forEach(container => container.style.display = 'none');
+            document.getElementById(pageId).style.display = 'block';
+        }
+          function navigateToLogin() {
+            // Navigasi ke halaman login
+            window.location.href = "awal.html"; // Ganti sesuai ID elemen login
+        }
+    </script>
+</body>
+</html>
